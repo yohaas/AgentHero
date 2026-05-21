@@ -3221,6 +3221,18 @@ function isShellPermissionTool(toolName: string) {
   return /^(bash|shell|sh|cmd|powershell)$/i.test(toolName.trim());
 }
 
+const PACKAGE_MANAGER_OPTIONS_WITH_VALUE = new Set([
+  "-C",
+  "-F",
+  "--config",
+  "--dir",
+  "--filter",
+  "--package",
+  "--registry",
+  "--store-dir",
+  "--workspace"
+]);
+
 function permissionCommandSignature(command?: string) {
   const normalized = command?.trim().replace(/\s+/g, " ");
   if (!normalized) return undefined;
@@ -3235,14 +3247,29 @@ function permissionCommandSignature(command?: string) {
   if (packageManagerIndex >= 0) {
     const packageManager = tokens[packageManagerIndex].replace(/\.(?:cmd|exe)$/i, "").toLowerCase();
     const args = tokens.slice(packageManagerIndex + 1);
-    const commandIndex = args.findIndex((token) => !token.startsWith("-"));
+    const prefixArgs: string[] = [];
+    let commandIndex = -1;
+    for (let index = 0; index < args.length; index += 1) {
+      const token = args[index];
+      if (!token.startsWith("-")) {
+        commandIndex = index;
+        break;
+      }
+      prefixArgs.push(token);
+      const optionName = token.includes("=") ? token.slice(0, token.indexOf("=")) : token;
+      if (PACKAGE_MANAGER_OPTIONS_WITH_VALUE.has(optionName) && !token.includes("=") && args[index + 1]) {
+        prefixArgs.push(args[index + 1]);
+        index += 1;
+      }
+    }
     const packageCommand = commandIndex >= 0 ? args[commandIndex].toLowerCase() : "";
-    if (!packageCommand) return packageManager;
+    const signaturePrefix = [packageManager, ...prefixArgs].join(" ");
+    if (!packageCommand) return signaturePrefix;
     if (packageCommand === "run") {
       const script = args.slice(commandIndex + 1).find((token) => !token.startsWith("-"));
-      return script ? `${packageManager} run ${script}` : `${packageManager} run`;
+      return script ? `${signaturePrefix} run ${script}` : `${signaturePrefix} run`;
     }
-    return `${packageManager} ${packageCommand}`;
+    return `${signaturePrefix} ${packageCommand}`;
   }
   return segment.toLowerCase();
 }
@@ -14640,9 +14667,11 @@ function ToolCard({
     if (!permissionRule) return;
     setPermissionDecisionPending(true);
     try {
-      const currentRules = settings.permissionAllowRules || [];
-      const nextRules = permissionRuleExists ? currentRules : [...currentRules, permissionRule];
-      const next = await api.saveSettings({ ...settings, permissionAllowRules: nextRules });
+      const currentSettings = useAppStore.getState().settings;
+      const currentRules = currentSettings.permissionAllowRules || [];
+      const ruleExists = currentRules.some((rule) => permissionAllowRuleMatches(rule, permissionRule, commandText));
+      const nextRules = ruleExists ? currentRules : [...currentRules, permissionRule];
+      const next = await api.saveSettings({ ...currentSettings, permissionAllowRules: nextRules });
       setSettings(next);
       if (!sendCommand({ type: "permission", id: agent.id, toolUseId: event.toolUseId, decision: "approve" })) {
         setPermissionDecisionPending(false);

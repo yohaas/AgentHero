@@ -3085,6 +3085,18 @@ export class AgentRuntimeManager {
     return normalizedCommand === ruleCommand || normalizedCommand.startsWith(`${ruleCommand} `);
   }
 
+  private readonly packageManagerOptionsWithValue = new Set([
+    "-C",
+    "-F",
+    "--config",
+    "--dir",
+    "--filter",
+    "--package",
+    "--registry",
+    "--store-dir",
+    "--workspace"
+  ]);
+
   private permissionCommandSignature(command?: string): string | undefined {
     const normalized = command?.trim().replace(/\s+/g, " ");
     if (!normalized) return undefined;
@@ -3099,14 +3111,29 @@ export class AgentRuntimeManager {
     if (packageManagerIndex >= 0) {
       const packageManager = tokens[packageManagerIndex].replace(/\.(?:cmd|exe)$/i, "").toLowerCase();
       const args = tokens.slice(packageManagerIndex + 1);
-      const commandIndex = args.findIndex((token) => !token.startsWith("-"));
+      const prefixArgs: string[] = [];
+      let commandIndex = -1;
+      for (let index = 0; index < args.length; index += 1) {
+        const token = args[index];
+        if (!token.startsWith("-")) {
+          commandIndex = index;
+          break;
+        }
+        prefixArgs.push(token);
+        const optionName = token.includes("=") ? token.slice(0, token.indexOf("=")) : token;
+        if (this.packageManagerOptionsWithValue.has(optionName) && !token.includes("=") && args[index + 1]) {
+          prefixArgs.push(args[index + 1]);
+          index += 1;
+        }
+      }
       const packageCommand = commandIndex >= 0 ? args[commandIndex].toLowerCase() : "";
-      if (!packageCommand) return packageManager;
+      const signaturePrefix = [packageManager, ...prefixArgs].join(" ");
+      if (!packageCommand) return signaturePrefix;
       if (packageCommand === "run") {
         const script = args.slice(commandIndex + 1).find((token) => !token.startsWith("-"));
-        return script ? `${packageManager} run ${script}` : `${packageManager} run`;
+        return script ? `${signaturePrefix} run ${script}` : `${signaturePrefix} run`;
       }
-      return `${packageManager} ${packageCommand}`;
+      return `${signaturePrefix} ${packageCommand}`;
     }
     return segment.toLowerCase();
   }
