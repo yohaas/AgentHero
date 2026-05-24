@@ -2763,7 +2763,7 @@ function handleNativeSlashCommand(agent: RunningAgent, text: string): NativeSlas
       useAppStore.getState().addToast("Use /permissions default, /permissions auto-review, or /permissions full.");
       return "sent";
     }
-    return nativeSlashResult(sendCommand({ type: "setPermissionMode", id: agent.id, permissionMode }));
+    return nativeSlashResult(applyPermissionMode(agent, permissionMode));
   }
   if (provider === "codex" && command === "review") {
     return nativeSlashResult(sendCommand({ type: "userMessage", id: agent.id, text: "Review the current working tree for bugs, regressions, missing tests, and risky changes.", attachments: [] }));
@@ -7449,6 +7449,31 @@ function effortOptionsForAgent(agent: RunningAgent) {
     : EFFORT_OPTIONS.filter((option) => option.effort !== "max");
 }
 
+function applyPermissionMode(agent: RunningAgent, permissionMode: AgentPermissionMode): boolean {
+  const sent = sendCommand({ type: "setPermissionMode", id: agent.id, permissionMode });
+  if (!sent) return false;
+  useAppStore.setState((state) => {
+    const current = state.agents[agent.id];
+    if (!current) return state;
+    const isCodex = current.provider === "codex";
+    const storedMode: AgentPermissionMode =
+      isCodex && (permissionMode === "plan" || permissionMode === "auto") ? "default" : permissionMode;
+    const nextPlanMode = !isCodex || permissionMode === "plan" ? permissionMode === "plan" : current.planMode;
+    return {
+      agents: {
+        ...state.agents,
+        [agent.id]: {
+          ...current,
+          permissionMode: storedMode,
+          planMode: nextPlanMode,
+          updatedAt: new Date().toISOString()
+        }
+      }
+    };
+  });
+  return true;
+}
+
 function sendNextComposerMode(agent: RunningAgent, settings: { models: string[]; modelProfiles?: ModelProfile[] }) {
   if (agent.provider === "codex" || agent.provider === "openai") {
     const options = providerComposerModeOptions(agent, settings);
@@ -7457,16 +7482,16 @@ function sendNextComposerMode(agent: RunningAgent, settings: { models: string[];
     const next = options[(activeIndex + 1) % options.length];
     if (!next) return;
     if (next.permissionMode) {
-      sendCommand({ type: "setPermissionMode", id: agent.id, permissionMode: next.permissionMode });
+      applyPermissionMode(agent, next.permissionMode);
       return;
     }
     if (agent.provider === "codex" && currentPermissionMode(agent) === "plan") {
-      sendCommand({ type: "setPermissionMode", id: agent.id, permissionMode: "default" });
+      applyPermissionMode(agent, "default");
     }
     if (next.model) sendCommand({ type: "setModel", id: agent.id, model: next.model });
     return;
   }
-  sendCommand({ type: "setPermissionMode", id: agent.id, permissionMode: nextPermissionMode(agent) });
+  applyPermissionMode(agent, nextPermissionMode(agent));
 }
 
 function ComposerModeMenu({
@@ -7494,7 +7519,7 @@ function ComposerModeMenu({
 
   function setPermissionMode(permissionMode: AgentPermissionMode) {
     if (activeMode === permissionMode) return;
-    sendCommand({ type: "setPermissionMode", id: agent.id, permissionMode });
+    applyPermissionMode(agent, permissionMode);
   }
 
   function setEffort(effort: AgentEffort) {
