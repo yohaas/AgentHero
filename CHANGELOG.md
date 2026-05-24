@@ -10,6 +10,7 @@ All notable repository changes are listed newest-first and grouped by commit dat
 
 ## 2026-05-20
 
+- Normalize existing remembered approval rules on settings load/save so old long command entries collapse to their compact prefixes.
 - Shorten remembered approval prefixes for common shell commands so entries like git and cross-env do not store long file paths or inline scripts.
 - Keep pnpm workspace filters in remembered approval prefixes so filtered package commands match future requests instead of being saved as duplicate-looking partial rules.
 - Keep remembered shell approval prefixes focused on the first pipeline command instead of saving trailing grep/head-style pipeline stages.

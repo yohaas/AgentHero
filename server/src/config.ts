@@ -120,6 +120,7 @@ const LEGACY_UPDATE_COMMANDS = ["git pull", "npm ci", "npm run build", "Restart-
 const LEGACY_BUILT_IN_AGENT_DIR = "~/.agent-control/built-in-agents";
 const LEGACY_REPO_RELATIVE_BUILT_IN_AGENT_DIR = ".agent-control/built-in-agents";
 const DEFAULT_RELEASE_MANIFEST_URL = "https://raw.githubusercontent.com/yohaas/AgentHero/main/installer/manifest.json";
+const PACKAGE_MANAGER_OPTIONS_WITH_VALUE = new Set(["-C", "-F", "--config", "--dir", "--filter", "--package", "--registry", "--store-dir", "--workspace"]);
 
 export function defaultUpdateCommands(platform = process.platform, installMode: AppInstallMode = "checkout"): string[] {
   if (platform === "win32" && installMode === "installed") return WINDOWS_INSTALLED_UPDATE_COMMANDS;
@@ -147,21 +148,144 @@ async function ensurePrivateConfigDir(): Promise<void> {
   await chmod(configDir, 0o700).catch(() => undefined);
 }
 
+function normalizedExecutable(token?: string): string {
+  return token?.replace(/\.(?:cmd|exe)$/i, "").toLowerCase() || "";
+}
+
+function isEnvironmentAssignment(token?: string): boolean {
+  return Boolean(token && /^[A-Za-z_][A-Za-z0-9_]*=.*/.test(token));
+}
+
+function crossEnvCommandSignature(args: string[], prefix: string[]): string {
+  const firstArg = args[0];
+  if (firstArg && !isEnvironmentAssignment(firstArg)) {
+    return [...prefix, normalizedExecutable(firstArg)].join(" ");
+  }
+  return prefix.join(" ");
+}
+
+function npxCommandSignature(args: string[]): string {
+  const prefix = ["npx"];
+  let index = 0;
+  for (; index < args.length; index += 1) {
+    const token = args[index];
+    if (!token.startsWith("-")) break;
+    prefix.push(token);
+    const optionName = token.includes("=") ? token.slice(0, token.indexOf("=")) : token;
+    if ((optionName === "--package" || optionName === "-p") && !token.includes("=") && args[index + 1]) {
+      prefix.push(args[index + 1]);
+      index += 1;
+    }
+  }
+  const packageName = args[index];
+  if (!packageName) return prefix.join(" ");
+  const packagePrefix = [...prefix, packageName];
+  if (normalizedExecutable(packageName) === "cross-env") {
+    return crossEnvCommandSignature(args.slice(index + 1), packagePrefix);
+  }
+  return packagePrefix.join(" ");
+}
+
+function compactShellPermissionCommand(command?: string): string | undefined {
+  const normalized = command?.trim().replace(/\s+/g, " ");
+  if (!normalized) return undefined;
+  const commandSegments = normalized.split(/\s*(?:&&|\|\||[|;])\s*/).filter(Boolean);
+  const segment = commandSegments.find((item) => /\b(?:npm|pnpm|yarn|bun)(?:\.(?:cmd|exe))?\b/i.test(item)) || commandSegments[0];
+  const tokens = segment
+    .split(/\s+/)
+    .map((token) => token.replace(/^["']|["']$/g, ""))
+    .filter(Boolean);
+  if (/^cd$/i.test(tokens[0] || "")) return "cd";
+  const packageManagerIndex = tokens.findIndex((token) => /^(npm|pnpm|yarn|bun)(?:\.(?:cmd|exe))?$/i.test(token));
+  if (packageManagerIndex >= 0) {
+    const packageManager = normalizedExecutable(tokens[packageManagerIndex]);
+    const args = tokens.slice(packageManagerIndex + 1);
+    const prefixArgs: string[] = [];
+    let commandIndex = -1;
+    for (let index = 0; index < args.length; index += 1) {
+      const token = args[index];
+      if (!token.startsWith("-")) {
+        commandIndex = index;
+        break;
+      }
+      prefixArgs.push(token);
+      const optionName = token.includes("=") ? token.slice(0, token.indexOf("=")) : token;
+      if (PACKAGE_MANAGER_OPTIONS_WITH_VALUE.has(optionName) && !token.includes("=") && args[index + 1]) {
+        prefixArgs.push(args[index + 1]);
+        index += 1;
+      }
+    }
+    const packageCommand = commandIndex >= 0 ? args[commandIndex].toLowerCase() : "";
+    const signaturePrefix = [packageManager, ...prefixArgs].join(" ");
+    if (!packageCommand) return signaturePrefix;
+    if (packageCommand === "run") {
+      const script = args.slice(commandIndex + 1).find((token) => !token.startsWith("-"));
+      return script ? `${signaturePrefix} run ${script}` : `${signaturePrefix} run`;
+    }
+    return `${signaturePrefix} ${packageCommand}`;
+  }
+  let commandIndex = tokens.findIndex((token) => !isEnvironmentAssignment(token));
+  if (commandIndex < 0) commandIndex = 0;
+  const commandName = normalizedExecutable(tokens[commandIndex]);
+  const args = tokens.slice(commandIndex + 1);
+  if (!commandName) return undefined;
+  if (commandName === "cross-env") return crossEnvCommandSignature(args, ["cross-env"]);
+  if (commandName === "npx") return npxCommandSignature(args);
+  if (commandName === "git") {
+    const subcommand = args.find((token) => !token.startsWith("-"));
+    return subcommand ? `git ${subcommand.toLowerCase()}` : "git";
+  }
+  return commandName;
+}
+
+function normalizePermissionAllowRules(rules?: PermissionAllowRule[]): PermissionAllowRule[] | undefined {
+  if (!Array.isArray(rules)) return undefined;
+  const normalizedRules: PermissionAllowRule[] = [];
+  const seen = new Set<string>();
+  for (const rule of rules) {
+    if (!rule || typeof rule !== "object") continue;
+    const model = typeof rule.model === "string" ? rule.model.trim() : "";
+    const toolName = typeof rule.toolName === "string" ? rule.toolName.trim() : "";
+    if (!model || !toolName) continue;
+    const command = compactShellPermissionCommand(rule.command);
+    const normalizedRule: PermissionAllowRule = {
+      ...rule,
+      model,
+      toolName,
+      ...(rule.provider ? { provider: rule.provider } : {}),
+      ...(command ? { command } : {})
+    };
+    const key = `${normalizedRule.provider || ""}:${model.toLowerCase()}:${toolName.toLowerCase()}:${command?.toLowerCase() || ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    normalizedRules.push(normalizedRule);
+  }
+  return normalizedRules;
+}
+
+function normalizeConfig(config: DashboardConfig): DashboardConfig {
+  return {
+    ...config,
+    permissionAllowRules: normalizePermissionAllowRules(config.permissionAllowRules)
+  };
+}
+
 export async function readConfig(): Promise<DashboardConfig> {
   try {
     await ensurePrivateConfigDir();
     const raw = await readFile(configPath, "utf8");
-    return JSON.parse(raw) as DashboardConfig;
+    return normalizeConfig(JSON.parse(raw) as DashboardConfig);
   } catch {
     return {};
   }
 }
 
 export async function writeConfig(config: DashboardConfig): Promise<DashboardConfig> {
+  const normalized = normalizeConfig(config);
   await ensurePrivateConfigDir();
-  await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+  await writeFile(configPath, `${JSON.stringify(normalized, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
   await chmod(configPath, 0o600).catch(() => undefined);
-  return config;
+  return normalized;
 }
 
 export async function readSecrets(): Promise<DashboardSecrets> {
