@@ -3097,6 +3097,60 @@ export class AgentRuntimeManager {
     "--workspace"
   ]);
 
+  private normalizedExecutable(token?: string): string {
+    return token?.replace(/\.(?:cmd|exe)$/i, "").toLowerCase() || "";
+  }
+
+  private isEnvironmentAssignment(token?: string): boolean {
+    return Boolean(token && /^[A-Za-z_][A-Za-z0-9_]*=.*/.test(token));
+  }
+
+  private crossEnvCommandSignature(args: string[], prefix: string[]): string {
+    const firstArg = args[0];
+    if (firstArg && !this.isEnvironmentAssignment(firstArg)) {
+      return [...prefix, this.normalizedExecutable(firstArg)].join(" ");
+    }
+    return prefix.join(" ");
+  }
+
+  private npxCommandSignature(args: string[]): string {
+    const prefix = ["npx"];
+    let index = 0;
+    for (; index < args.length; index += 1) {
+      const token = args[index];
+      if (!token.startsWith("-")) break;
+      prefix.push(token);
+      const optionName = token.includes("=") ? token.slice(0, token.indexOf("=")) : token;
+      if ((optionName === "--package" || optionName === "-p") && !token.includes("=") && args[index + 1]) {
+        prefix.push(args[index + 1]);
+        index += 1;
+      }
+    }
+    const packageName = args[index];
+    if (!packageName) return prefix.join(" ");
+    const packagePrefix = [...prefix, packageName];
+    if (this.normalizedExecutable(packageName) === "cross-env") {
+      return this.crossEnvCommandSignature(args.slice(index + 1), packagePrefix);
+    }
+    return packagePrefix.join(" ");
+  }
+
+  private genericCommandSignature(tokens: string[]): string | undefined {
+    let commandIndex = tokens.findIndex((token) => !this.isEnvironmentAssignment(token));
+    if (commandIndex < 0) commandIndex = 0;
+    const commandName = this.normalizedExecutable(tokens[commandIndex]);
+    const args = tokens.slice(commandIndex + 1);
+    if (!commandName) return undefined;
+    if (commandName === "cd") return "cd";
+    if (commandName === "cross-env") return this.crossEnvCommandSignature(args, ["cross-env"]);
+    if (commandName === "npx") return this.npxCommandSignature(args);
+    if (commandName === "git") {
+      const subcommand = args.find((token) => !token.startsWith("-"));
+      return subcommand ? `git ${subcommand.toLowerCase()}` : "git";
+    }
+    return commandName;
+  }
+
   private permissionCommandSignature(command?: string): string | undefined {
     const normalized = command?.trim().replace(/\s+/g, " ");
     if (!normalized) return undefined;
@@ -3109,7 +3163,7 @@ export class AgentRuntimeManager {
     if (/^cd$/i.test(tokens[0] || "")) return "cd";
     const packageManagerIndex = tokens.findIndex((token) => /^(npm|pnpm|yarn|bun)(?:\.(?:cmd|exe))?$/i.test(token));
     if (packageManagerIndex >= 0) {
-      const packageManager = tokens[packageManagerIndex].replace(/\.(?:cmd|exe)$/i, "").toLowerCase();
+      const packageManager = this.normalizedExecutable(tokens[packageManagerIndex]);
       const args = tokens.slice(packageManagerIndex + 1);
       const prefixArgs: string[] = [];
       let commandIndex = -1;
@@ -3135,7 +3189,7 @@ export class AgentRuntimeManager {
       }
       return `${signaturePrefix} ${packageCommand}`;
     }
-    return segment.toLowerCase();
+    return this.genericCommandSignature(tokens);
   }
 
   private extractTextDelta(payload: Record<string, unknown>): string | undefined {
