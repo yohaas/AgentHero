@@ -7225,6 +7225,13 @@ const COMPOSER_MODE_OPTIONS = [
     icon: ClipboardList
   },
   {
+    mode: "auto",
+    label: "Auto",
+    compactLabel: "Auto",
+    description: "Claude decides per action using its built-in safety classifier; pauses on risky ones.",
+    icon: Sparkles
+  },
+  {
     mode: "bypassPermissions",
     label: "Bypass permissions",
     compactLabel: "Bypass",

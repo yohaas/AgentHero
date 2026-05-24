@@ -520,7 +520,7 @@ function normalizeSettings(settings: SettingsState): SettingsState {
   const fileExplorerDock = ["tile", "left", "bottom", "right"].includes(settings.fileExplorerDock)
     ? settings.fileExplorerDock
     : defaultSettings.fileExplorerDock;
-  const defaultAgentMode = ["default", "acceptEdits", "plan", "bypassPermissions"].includes(settings.defaultAgentMode)
+  const defaultAgentMode = ["default", "acceptEdits", "plan", "auto", "bypassPermissions"].includes(settings.defaultAgentMode)
     ? settings.defaultAgentMode
     : defaultSettings.defaultAgentMode;
   const codexDefaultAgentMode =

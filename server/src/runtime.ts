@@ -503,7 +503,10 @@ export class AgentRuntimeManager {
     const displayName = this.uniqueDisplayName(project.id, request.displayName?.trim() || def.name);
     const timestamp = now();
     const requestedPermissionMode = this.initialPermissionMode(request);
-    const permissionMode = provider === "codex" && requestedPermissionMode === "plan" ? "default" : requestedPermissionMode;
+    const permissionMode =
+      provider === "codex" && (requestedPermissionMode === "plan" || requestedPermissionMode === "auto")
+        ? "default"
+        : requestedPermissionMode;
     const currentModel = isSyntheticModel(request.model) ? this.defaultModelForDefinition(def, provider) : request.model;
     const agent: RunningAgent = {
       id: nanoid(),
@@ -932,7 +935,10 @@ export class AgentRuntimeManager {
     const state = this.requiredState(id);
     if (state.agent.remoteControl) throw new Error("Remote Control agents cannot change mode from the dashboard.");
 
-    const nextPermissionMode = state.agent.provider === "codex" && permissionMode === "plan" ? "default" : permissionMode;
+    const nextPermissionMode =
+      state.agent.provider === "codex" && (permissionMode === "plan" || permissionMode === "auto")
+        ? "default"
+        : permissionMode;
     state.agent.permissionMode = nextPermissionMode;
     if (state.agent.provider !== "codex" || permissionMode === "plan") {
       state.agent.planMode = permissionMode === "plan";
@@ -2366,6 +2372,7 @@ export class AgentRuntimeManager {
   private permissionMode(state: AgentProcessState): AgentPermissionMode {
     if (state.agent.permissionMode) {
       if (state.agent.provider === "codex" && state.agent.permissionMode === "plan") return "default";
+      if (state.agent.provider === "codex" && state.agent.permissionMode === "auto") return "default";
       return state.agent.permissionMode;
     }
     if (state.agent.provider !== "codex" && state.agent.planMode) return "plan";
@@ -2383,6 +2390,7 @@ export class AgentRuntimeManager {
     if (permissionMode === "acceptEdits") return "Edit automatically";
     if (permissionMode === "autoReview") return "Auto-review";
     if (permissionMode === "plan") return "Plan mode";
+    if (permissionMode === "auto") return "Auto";
     if (permissionMode === "bypassPermissions") return "Bypass permissions";
     return "Ask before edits";
   }
