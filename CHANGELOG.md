@@ -2,6 +2,10 @@
 
 All notable repository changes are listed newest-first and grouped by commit date.
 
+## 2026-05-24
+
+- Release AgentHero 0.1.12 with the latest built-in agents, chat responsiveness improvements, mobile header polish, and remembered approval prefix fixes.
+
 ## 2026-05-20
 
 - Shorten remembered approval prefixes for common shell commands so entries like git and cross-env do not store long file paths or inline scripts.

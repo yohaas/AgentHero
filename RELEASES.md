@@ -2,6 +2,15 @@
 
 Release summaries are listed newest-first. [CHANGELOG.md](CHANGELOG.md) has the detailed releases.
 
+## 0.1.12 - 2026-05-24
+
+AgentHero 0.1.12 packages the latest app improvements into a new full release:
+
+- Adds new built-in Marketing and Quality agents for focused specialist chats.
+- Improves project switching and long-chat rendering responsiveness.
+- Shows the active model in the mobile chat header.
+- Keeps remembered shell approval prefixes cleaner and easier to reuse.
+
 ## 0.1.11 - 2026-05-10
 
 AgentHero 0.1.11 adds an optional automatic chat history alongside the existing manual Saved Chats:
