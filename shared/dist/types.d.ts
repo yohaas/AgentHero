@@ -190,6 +190,7 @@ export interface AppUpdateAsset {
     version?: string;
     fromVersion?: string;
     url: string;
+    downloadUrl?: string;
     sha256: string;
     size?: number;
 }

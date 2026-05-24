@@ -11,3 +11,4 @@
 - Apply chat UI changes to mobile, tile, and maximized chat views unless otherwise specified.
 - Do not rebuild or recommit installer artifacts for routine app changes unless the user asks or the installer/update payload itself needs to change.
 - For release/update work, explicitly say whether the change needs a full build or can be shipped as a platform-neutral patch. Do not create a patch package automatically; ask before packaging one.
+- For Windows full releases, rebuild and commit `installer/AgentHeroSetup.exe` with the release. Keep the in-app installed update download pointed at the setup EXE, not the release ZIP.

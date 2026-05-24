@@ -6,6 +6,7 @@ All notable repository changes are listed newest-first and grouped by commit dat
 
 - Release AgentHero 0.1.12 with the latest built-in agents, chat responsiveness improvements, mobile header polish, and remembered approval prefix fixes.
 - Make the macOS release helper reinstall workspace dependencies before building so new frontend packages are present on release machines.
+- Add a Windows release helper that rebuilds the setup EXE, keeps the manifest installer download link current, and makes in-app installed update downloads open the setup EXE.
 
 ## 2026-05-20
 

@@ -5186,7 +5186,7 @@ function AppUpdateNotice({ compact = false, hideWhenNoUpdate = false }: { compac
   const commits = status?.commits || [];
   const logFiles = updateLogs?.files || [];
   const updateAvailable = Boolean(status?.updateAvailable);
-  const downloadAssetUrl = installedMode ? status?.updateAsset?.url : undefined;
+  const downloadAssetUrl = installedMode ? status?.updateAsset?.downloadUrl || status?.updateAsset?.url : undefined;
   const canDownloadUpdate = updateAvailable && Boolean(downloadAssetUrl);
   const canRunUpdate =
     !installedMode &&
@@ -5444,6 +5444,7 @@ function AppUpdateNotice({ compact = false, hideWhenNoUpdate = false }: { compac
                 <div className="rounded-md border border-border bg-muted p-2 font-mono text-xs [overflow-wrap:anywhere]">
                   <div>type: {status.updateAsset.type || "full"}</div>
                   <div>{status.updateAsset.url}</div>
+                  {status.updateAsset.downloadUrl && <div>download: {status.updateAsset.downloadUrl}</div>}
                   <div>sha256: {status.updateAsset.sha256}</div>
                 </div>
               </div>

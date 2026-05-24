@@ -1,12 +1,22 @@
 {
   "version": "0.1.12",
   "releaseTag": "v0.1.12",
-  "commitSha": "617680f77f0996fbde504d9bc518b59278b5f13a",
+  "commitSha": "8bcd890d7b8eaeffc1e59e2862776b888f2c7fb8",
   "platform": "any",
   "arch": "any",
-  "builtAt": "2026-05-24T17:13:27.7804749Z",
+  "builtAt": "2026-05-24T17:30:04.3576026Z",
   "releaseNotesUrl": "",
   "assets": [
+    {
+      "type": "full",
+      "platform": "windows",
+      "arch": "x64",
+      "version": "0.1.12",
+      "url": "https://raw.githubusercontent.com/yohaas/AgentHero/main/installer/releases/v0.1.12/agent-hero-0.1.12-windows-x64.zip",
+      "downloadUrl": "https://github.com/yohaas/AgentHero/raw/main/installer/AgentHeroSetup.exe",
+      "sha256": "c5770f17d60af84d18d81d4b173c23d3878c01fd942465149ae33597131aa891",
+      "size": 18678855
+    },
     {
       "type": "full",
       "platform": "macos",
@@ -15,15 +25,6 @@
       "url": "https://raw.githubusercontent.com/yohaas/AgentHero/main/installer/releases/v0.1.12/agent-hero-0.1.12-macos-arm64.zip",
       "sha256": "340d2173b0942f7e86bc90432d7568fa209a818303f1806b81f5a4f58d825c59",
       "size": 18178981
-    },
-    {
-      "type": "full",
-      "platform": "windows",
-      "arch": "x64",
-      "version": "0.1.12",
-      "url": "https://raw.githubusercontent.com/yohaas/AgentHero/main/installer/releases/v0.1.12/agent-hero-0.1.12-windows-x64.zip",
-      "sha256": "1bc69fdf92c21cf4f5c9e3550d3fc5936657750a83b998ed43e84d7cf5a2f0d5",
-      "size": 18678774
     },
     {
       "type": "full",
