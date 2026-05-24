@@ -62,6 +62,8 @@ if [[ "$node_major" != "20" ]]; then
   exit 1
 fi
 
+npm ci
+
 version="$(node -p "require('$repo_root/package.json').version")"
 release_dir="installer/releases/v$version"
 mkdir -p "$release_dir"

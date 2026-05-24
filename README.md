@@ -202,7 +202,7 @@ npm run bundle:mac
 npm run installer:mac -- --manifest-url ./artifacts/manifest.json --output-path ./artifacts/AgentHeroSetup.pkg
 ```
 
-For release packaging after a version bump has landed on `main`, use the helper from a clean macOS checkout. It builds the macOS full ZIP, updates the manifest with the macOS asset, rebuilds `installer/AgentHeroSetup.pkg`, commits the release files, and pushes:
+For release packaging after a version bump has landed on `main`, use the helper from a clean macOS checkout. It refreshes dependencies, builds the macOS full ZIP, updates the manifest with the macOS asset, rebuilds `installer/AgentHeroSetup.pkg`, commits the release files, and pushes:
 
 ```bash
 git pull --ff-only
