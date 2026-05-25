@@ -1129,7 +1129,31 @@ export class AgentRuntimeManager {
       timestamp: now()
     });
     if (decision === "approve" && state.agent.permissionMode === "plan") {
-      this.setPermissionMode(id, "default");
+      if (event.toolUseId) {
+        // Restarting the Claude CLI here would kill the in-flight ExitPlanMode
+        // permission request before we can resolve it. The CLI exits plan mode
+        // on its own once we return {behavior:"allow"}, so just sync our cached
+        // mode state.
+        state.agent.permissionMode = "default";
+        state.agent.planMode = false;
+        state.agent.updatedAt = now();
+        this.broadcast({
+          type: "agent.permission_mode_changed",
+          id: state.agent.id,
+          permissionMode: "default",
+          planMode: false,
+          updatedAt: state.agent.updatedAt
+        });
+        this.broadcast({
+          type: "agent.plan_mode_changed",
+          id: state.agent.id,
+          planMode: false,
+          updatedAt: state.agent.updatedAt
+        });
+        this.persist();
+      } else {
+        this.setPermissionMode(id, "default");
+      }
     }
     if (event.toolUseId) {
       const answeredViaTool = this.answerPlanToolUse(state, event.toolUseId, decision, this.formatPlanAnswer(decision, normalizedResponse));
