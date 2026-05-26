@@ -1306,12 +1306,17 @@ export const useAppStore = create<AppState>((set, get) => ({
           maximized: currentTargetUi?.maximized || false
         }
       });
+      const nextMinimizedTiles = state.minimizedTiles["file-explorer"]
+        ? Object.fromEntries(Object.entries(state.minimizedTiles).filter(([id]) => id !== "file-explorer"))
+        : state.minimizedTiles;
+      const persisted = writeStoredTileLayout({ order: tileOrder, widths: state.tileWidths, minimized: nextMinimizedTiles });
       return {
         selectedProjectId: projectId,
         fileExplorerProjectUi,
         fileExplorerOpen: true,
         fileExplorerMaximized: currentTargetUi?.maximized || false,
-        tileOrder: writeStoredTileLayout({ order: tileOrder, widths: state.tileWidths, minimized: state.minimizedTiles }).order,
+        tileOrder: persisted.order,
+        minimizedTiles: persisted.minimized,
         filePreviewRequest: {
           id: requestId,
           projectId,

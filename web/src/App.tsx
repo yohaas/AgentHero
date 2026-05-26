@@ -9703,6 +9703,9 @@ function ProjectInspectorTile({
     } else {
       void openPreview(filePreviewRequest.path, true, filePreviewRequest.line);
     }
+    window.requestAnimationFrame(() =>
+      inspectorRootRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" })
+    );
   }, [filePreviewRequest?.id, project.id]);
 
   useEffect(() => {
