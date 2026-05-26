@@ -975,13 +975,14 @@ export class AgentRuntimeManager {
 
     state.agent.effort = effort;
     state.agent.updatedAt = now();
-    if (state.agent.provider === "claude" && state.child && !state.child.killed) {
-      this.sendCliSlashCommand(state, `/effort ${effort}`);
-    }
+    const deferredRestart = Boolean(state.activeTurn);
+    const restarted = state.agent.provider === "claude" ? this.requestConfigRestart(state) : false;
     this.pushTranscript(state, {
       ...eventBase(state.agent.id, state.agent.currentModel),
       kind: "system",
-      text: `Effort changed to ${effort}.`
+      text: restarted && deferredRestart
+        ? `Effort changed to ${effort}. Claude will apply it after the current response.`
+        : `Effort changed to ${effort}.`
     });
     this.broadcast({
       type: "agent.effort_changed",
