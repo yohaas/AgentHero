@@ -105,13 +105,13 @@ interface PendingPermissionRequest {
 interface PendingQuestionRequest {
   toolUseId: string;
   resolve: (message: string) => void;
-  timeout: NodeJS.Timeout;
+  timeout?: NodeJS.Timeout;
 }
 
 interface PendingPlanRequest {
   toolUseId: string;
   resolve: (result: PermissionPromptResult) => void;
-  timeout: NodeJS.Timeout;
+  timeout?: NodeJS.Timeout;
 }
 
 export interface PermissionPromptRequest {
@@ -1796,13 +1796,12 @@ export class AgentRuntimeManager {
     const questionRequest = this.extractAskUserQuestionRequest(request.toolName || "tool", request.input ?? {});
     if (questionRequest) {
       this.pushQuestionRequest(state, questionRequest, toolUseId);
+      // User-facing prompts intentionally have no timeout — the user may take
+      // arbitrarily long to respond. The pending request is cleared if the
+      // agent is stopped (see denyPendingPermissions).
       const message = await new Promise<string>((resolve) => {
-        const timeout = setTimeout(() => {
-          state.pendingQuestions?.delete(toolUseId);
-          resolve("No answer was provided before the AgentHero question prompt timed out.");
-        }, PERMISSION_REQUEST_TIMEOUT_MS);
         state.pendingQuestions ??= new Map();
-        state.pendingQuestions.set(toolUseId, { toolUseId, resolve, timeout });
+        state.pendingQuestions.set(toolUseId, { toolUseId, resolve });
       });
       return {
         behavior: "deny",
@@ -1814,15 +1813,8 @@ export class AgentRuntimeManager {
     if (planRequest) {
       this.pushPlanRequest(state, planRequest, toolUseId);
       return await new Promise<PermissionPromptResult>((resolve) => {
-        const timeout = setTimeout(() => {
-          state.pendingPlans?.delete(toolUseId);
-          resolve({
-            behavior: "deny",
-            message: "No plan decision was provided before the AgentHero plan prompt timed out."
-          });
-        }, PERMISSION_REQUEST_TIMEOUT_MS);
         state.pendingPlans ??= new Map();
-        state.pendingPlans.set(toolUseId, { toolUseId, resolve, timeout });
+        state.pendingPlans.set(toolUseId, { toolUseId, resolve });
       });
     }
 
