@@ -396,12 +396,13 @@ interface AppState {
 
 const defaultSettings: SettingsState = {
   projectsRoot: "",
-  models: ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"],
+  models: ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"],
   modelProfiles: [
-    { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000 },
-    { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000 },
-    { id: "claude-sonnet-4-6", provider: "claude", contextWindow: 200000, default: true },
-    { id: "claude-haiku-4-5", provider: "claude", contextWindow: 200000 },
+    { id: "claude-opus-4-8", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+    { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+    { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+    { id: "claude-sonnet-4-6", provider: "claude", contextWindow: 200000, default: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+    { id: "claude-haiku-4-5", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
     { id: "gpt-5.5", provider: "openai", contextWindow: 200000, default: true, supportedEfforts: ["low", "medium", "high", "xhigh"] },
     { id: "gpt-5.4", provider: "openai", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh"] },
     { id: "gpt-5.4-mini", provider: "openai", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh"] },

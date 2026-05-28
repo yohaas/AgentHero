@@ -582,7 +582,15 @@ const CLAUDE_SLASH_COMMANDS: SlashCommandSuggestion[] = [
   { value: "/compact", label: "/compact", description: "Compact conversation context", argumentHint: "[instructions]", source: "builtin" },
   { value: "/memory", label: "/memory", description: "Edit or inspect memory files", source: "builtin", interactive: true },
   { value: "/resume", label: "/resume", description: "Resume a previous conversation", source: "builtin", interactive: true },
-  { value: "/permissions", label: "/permissions", description: "Manage allow, ask, and deny rules", source: "builtin", interactive: true }
+  { value: "/permissions", label: "/permissions", description: "Manage allow, ask, and deny rules", source: "builtin", interactive: true },
+  { value: "/fast", label: "/fast", description: "Toggle Claude fast mode (lower latency)", source: "builtin" },
+  { value: "/effort low", label: "/effort low", description: "Use low Claude reasoning effort", source: "builtin" },
+  { value: "/effort medium", label: "/effort medium", description: "Use medium Claude reasoning effort", source: "builtin" },
+  { value: "/effort high", label: "/effort high", description: "Use high Claude reasoning effort", source: "builtin" },
+  { value: "/effort xhigh", label: "/effort xhigh", description: "Use extra-high Claude reasoning effort", source: "builtin" },
+  { value: "/effort max", label: "/effort max", description: "Use maximum Claude reasoning effort", source: "builtin" },
+  { value: "/effort ultracode", label: "/effort ultracode", description: "Use ultracode Claude reasoning effort", source: "builtin" },
+  { value: "/effort auto", label: "/effort auto", description: "Let Claude choose reasoning effort per task", source: "builtin" }
 ];
 
 const CODEX_SLASH_COMMANDS: SlashCommandSuggestion[] = [
@@ -3659,10 +3667,11 @@ const CURRENT_CODEX_MODEL_PROFILES = [
 ] satisfies ModelProfile[];
 
 const CURRENT_CLAUDE_MODEL_PROFILES = [
-  { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] },
-  { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] },
-  { id: "claude-sonnet-4-6", provider: "claude", contextWindow: 200000, default: true, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] },
-  { id: "claude-haiku-4-5", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] }
+  { id: "claude-opus-4-8", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-sonnet-4-6", provider: "claude", contextWindow: 200000, default: true, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-haiku-4-5", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] }
 ] satisfies ModelProfile[];
 
 function currentModelProfilesForProvider(provider: AgentProvider) {
@@ -7133,7 +7142,7 @@ function ProviderModelProfilesField({
         </div>
         {value.map((profile, index) => (
           <div
-            key={`${profile.provider}-${profile.id || "new"}-${index}`}
+            key={index}
             className={cn(
               "grid grid-cols-[2rem_minmax(0,1fr)_8rem_2rem] gap-2 rounded-md",
               draggedIndex === index && "bg-accent/40"
@@ -7303,7 +7312,9 @@ const EFFORT_OPTIONS = [
   { effort: "medium", label: "Medium" },
   { effort: "high", label: "High" },
   { effort: "xhigh", label: "XHigh" },
-  { effort: "max", label: "Max" }
+  { effort: "max", label: "Max" },
+  { effort: "ultracode", label: "Ultracode" },
+  { effort: "auto", label: "Auto" }
 ] satisfies { effort: AgentEffort; label: string }[];
 
 function currentPermissionMode(agent: RunningAgent): AgentPermissionMode {
@@ -7446,7 +7457,7 @@ function defaultProviderModeForProvider(provider: AgentProvider, model: string) 
 function effortOptionsForAgent(agent: RunningAgent) {
   return agent.provider === "claude" || !agent.provider
     ? EFFORT_OPTIONS
-    : EFFORT_OPTIONS.filter((option) => option.effort !== "max");
+    : EFFORT_OPTIONS.filter((option) => option.effort !== "max" && option.effort !== "ultracode" && option.effort !== "auto");
 }
 
 function applyPermissionMode(agent: RunningAgent, permissionMode: AgentPermissionMode): boolean {

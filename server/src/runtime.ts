@@ -975,14 +975,13 @@ export class AgentRuntimeManager {
 
     state.agent.effort = effort;
     state.agent.updatedAt = now();
-    const deferredRestart = Boolean(state.activeTurn);
-    const restarted = state.agent.provider === "claude" ? this.requestConfigRestart(state) : false;
+    if (state.agent.provider === "claude" && state.child && !state.child.killed) {
+      this.sendCliSlashCommand(state, `/effort ${effort}`);
+    }
     this.pushTranscript(state, {
       ...eventBase(state.agent.id, state.agent.currentModel),
       kind: "system",
-      text: restarted && deferredRestart
-        ? `Effort changed to ${effort}. Claude will apply it after the current response.`
-        : `Effort changed to ${effort}.`
+      text: `Effort changed to ${effort}.`
     });
     this.broadcast({
       type: "agent.effort_changed",
@@ -2425,8 +2424,10 @@ export class AgentRuntimeManager {
     return status.charAt(0).toUpperCase() + status.slice(1);
   }
 
-  private providerReasoningEffort(state: AgentProcessState): Exclude<AgentEffort, "max"> {
-    return state.agent.effort === "max" ? "xhigh" : state.agent.effort || "medium";
+  private providerReasoningEffort(state: AgentProcessState): "low" | "medium" | "high" | "xhigh" {
+    const effort = state.agent.effort || "medium";
+    if (effort === "low" || effort === "medium" || effort === "high" || effort === "xhigh") return effort;
+    return "xhigh";
   }
 
   private writePermissionMcpConfig(state: AgentProcessState): string {

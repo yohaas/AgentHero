@@ -2,7 +2,7 @@
 name: performance
 description: Performance analysis and optimization specialist. Use for profiling, identifying bottlenecks, optimizing hot paths, reducing latency, lowering memory or CPU usage, and improving load times. Invoke when the task involves measurable speed, throughput, resource usage, or scalability concerns.
 provider: claude
-defaultModel: claude-opus-4-7
+defaultModel: claude-opus-4-8
 tools: Read, Edit, Bash, Grep, Glob
 ---
 

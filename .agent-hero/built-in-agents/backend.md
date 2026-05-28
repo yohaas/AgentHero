@@ -8,7 +8,7 @@ description: >-
   concerns.
 color: '#059669'
 provider: claude
-defaultModel: claude-opus-4-7
+defaultModel: claude-opus-4-8
 tools: []
 plugins: []
 ---

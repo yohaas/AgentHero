@@ -2,7 +2,7 @@
 name: research
 color: '#D97757'
 provider: claude
-defaultModel: claude-opus-4-7
+defaultModel: claude-opus-4-8
 tools: []
 plugins: []
 ---

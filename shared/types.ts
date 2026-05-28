@@ -16,7 +16,7 @@ export type AgentProvider = "claude" | "codex" | "openai";
 
 export type AutoApproveMode = "off" | "session" | "always";
 export type AgentPermissionMode = "default" | "acceptEdits" | "autoReview" | "plan" | "auto" | "bypassPermissions";
-export type AgentEffort = "low" | "medium" | "high" | "xhigh" | "max";
+export type AgentEffort = "low" | "medium" | "high" | "xhigh" | "max" | "ultracode" | "auto";
 export type RemoteControlState = "starting" | "waiting-for-browser" | "connected" | "closed" | "error";
 
 export interface TokenUsage {

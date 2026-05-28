@@ -98,10 +98,10 @@ const authCookieName = "agent_hero_token";
 const legacyAuthCookieName = "agent_control_token";
 const anthropicModelsApiUrl = "https://api.anthropic.com/v1/models";
 const anthropicModelsDocUrl = "https://docs.anthropic.com/en/docs/about-claude/models/overview";
-const anthropicOpus47NewsUrl = "https://www.anthropic.com/news/claude-opus-4-7";
+const anthropicOpus48NewsUrl = "https://www.anthropic.com/news/claude-opus-4-8";
 const openAiModelsDocUrl = "https://developers.openai.com/api/docs/models";
 const codexModelsDocUrl = "https://developers.openai.com/codex/models";
-const fallbackClaudeModelIds = ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"];
+const fallbackClaudeModelIds = ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"];
 
 await migrateLegacyStateDir();
 let config = await readConfig();
@@ -201,7 +201,7 @@ function claudeModelProfiles(ids: string[]): ModelProfile[] {
     contextWindow: 200000,
     default: index === 0,
     supportsThinking: /\b(opus|sonnet)\b/.test(id),
-    supportedEfforts: ["low", "medium", "high", "xhigh", "max"]
+    supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"]
   }));
 }
 
@@ -256,10 +256,10 @@ async function fetchClaudeModels(): Promise<{ sourceUrl: string; models: ModelPr
   } catch {
     // Fall back to the public docs when no Anthropic key is configured or the API is unavailable.
   }
-  const [modelsHtml, opus47Html] = await Promise.all([fetchText(anthropicModelsDocUrl), fetchText(anthropicOpus47NewsUrl)]);
+  const [modelsHtml, opus48Html] = await Promise.all([fetchText(anthropicModelsDocUrl), fetchText(anthropicOpus48NewsUrl)]);
   return {
     sourceUrl: anthropicModelsDocUrl,
-    models: parsePublishedClaudeModels(`${modelsHtml}\n${opus47Html}`)
+    models: parsePublishedClaudeModels(`${modelsHtml}\n${opus48Html}`)
   };
 }
 

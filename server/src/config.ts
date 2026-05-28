@@ -7,6 +7,7 @@ import type { AgentPermissionMode, AppInstallMode, AutoApproveMode, ModelProfile
 import { migrateLegacyStateDir, statePath } from "./storage.js";
 
 export const DEFAULT_MODELS = [
+  "claude-opus-4-8",
   "claude-opus-4-7",
   "claude-opus-4-6",
   "claude-sonnet-4-6",
@@ -14,10 +15,11 @@ export const DEFAULT_MODELS = [
 ];
 
 export const DEFAULT_MODEL_PROFILES: ModelProfile[] = [
-  { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, default: false, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] },
-  { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] },
-  { id: "claude-sonnet-4-6", provider: "claude", contextWindow: 200000, default: true, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] },
-  { id: "claude-haiku-4-5", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max"] },
+  { id: "claude-opus-4-8", provider: "claude", contextWindow: 200000, default: false, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, default: false, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-sonnet-4-6", provider: "claude", contextWindow: 200000, default: true, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
+  { id: "claude-haiku-4-5", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
   { id: "gpt-5.5", provider: "openai", contextWindow: 200000, default: true, supportedEfforts: ["low", "medium", "high", "xhigh"] },
   { id: "gpt-5.4", provider: "openai", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh"] },
   { id: "gpt-5.4-mini", provider: "openai", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh"] },

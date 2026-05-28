@@ -3,7 +3,7 @@ name: quality
 description: Code quality agent.
 color: hsl(296 25% 45%)
 provider: claude
-defaultModel: claude-opus-4-7
+defaultModel: claude-opus-4-8
 tools: []
 plugins: []
 ---
