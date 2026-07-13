@@ -3667,6 +3667,7 @@ const CURRENT_CODEX_MODEL_PROFILES = [
 ] satisfies ModelProfile[];
 
 const CURRENT_CLAUDE_MODEL_PROFILES = [
+  { id: "claude-fable-5", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
   { id: "claude-opus-4-8", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
   { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
   { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },

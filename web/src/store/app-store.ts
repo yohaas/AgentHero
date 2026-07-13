@@ -396,8 +396,9 @@ interface AppState {
 
 const defaultSettings: SettingsState = {
   projectsRoot: "",
-  models: ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"],
+  models: ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"],
   modelProfiles: [
+    { id: "claude-fable-5", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
     { id: "claude-opus-4-8", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
     { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
     { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },

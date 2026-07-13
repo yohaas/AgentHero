@@ -7,6 +7,7 @@ import type { AgentPermissionMode, AppInstallMode, AutoApproveMode, ModelProfile
 import { migrateLegacyStateDir, statePath } from "./storage.js";
 
 export const DEFAULT_MODELS = [
+  "claude-fable-5",
   "claude-opus-4-8",
   "claude-opus-4-7",
   "claude-opus-4-6",
@@ -15,6 +16,7 @@ export const DEFAULT_MODELS = [
 ];
 
 export const DEFAULT_MODEL_PROFILES: ModelProfile[] = [
+  { id: "claude-fable-5", provider: "claude", contextWindow: 200000, default: false, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
   { id: "claude-opus-4-8", provider: "claude", contextWindow: 200000, default: false, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
   { id: "claude-opus-4-7", provider: "claude", contextWindow: 200000, default: false, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },
   { id: "claude-opus-4-6", provider: "claude", contextWindow: 200000, supportsThinking: true, supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"] },

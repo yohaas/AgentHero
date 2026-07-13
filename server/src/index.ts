@@ -101,7 +101,7 @@ const anthropicModelsDocUrl = "https://docs.anthropic.com/en/docs/about-claude/m
 const anthropicOpus48NewsUrl = "https://www.anthropic.com/news/claude-opus-4-8";
 const openAiModelsDocUrl = "https://developers.openai.com/api/docs/models";
 const codexModelsDocUrl = "https://developers.openai.com/codex/models";
-const fallbackClaudeModelIds = ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"];
+const fallbackClaudeModelIds = ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"];
 
 await migrateLegacyStateDir();
 let config = await readConfig();
@@ -200,14 +200,14 @@ function claudeModelProfiles(ids: string[]): ModelProfile[] {
     provider: "claude",
     contextWindow: 200000,
     default: index === 0,
-    supportsThinking: /\b(opus|sonnet)\b/.test(id),
+    supportsThinking: /\b(opus|sonnet|fable)\b/.test(id),
     supportedEfforts: ["low", "medium", "high", "xhigh", "max", "ultracode", "auto"]
   }));
 }
 
 function claudeModelRank(id: string): [number, number, number, number] {
   const date = Number(id.match(/-(\d{8})$/)?.[1] || 0);
-  const family = id.includes("opus") ? 3 : id.includes("sonnet") ? 2 : id.includes("haiku") ? 1 : 0;
+  const family = id.includes("fable") ? 4 : id.includes("opus") ? 3 : id.includes("sonnet") ? 2 : id.includes("haiku") ? 1 : 0;
   const versionMatch = id.match(/claude-(?:3(?:-(\d+))?|(\w+)-(\d+)(?:-(\d+))?)/);
   const major = Number(versionMatch?.[2] || (id.includes("claude-3") ? 3 : 0));
   const minor = Number(versionMatch?.[4] || versionMatch?.[1] || 0);
@@ -228,7 +228,7 @@ function sortClaudeModels(ids: string[]): string[] {
 function parsePublishedClaudeModels(html: string): ModelProfile[] {
   const explicitApiIds = [...html.matchAll(/Developers can use\s+[`"“]([^`"”]+)[`"”]/gi)].map((match) => match[1]);
   const ids = uniqueModelIds([...explicitApiIds, ...fallbackClaudeModelIds])
-    .filter((id) => /^claude-(?:opus|sonnet|haiku)-\d-\d$/.test(id))
+    .filter((id) => /^claude-(?:opus|sonnet|haiku|fable)-\d(?:-\d)?$/.test(id))
     .filter((id) => !id.endsWith("-v1"));
   return claudeModelProfiles(sortClaudeModels(ids));
 }
